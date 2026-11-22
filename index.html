@@ -1,0 +1,2699 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#08403C">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ini Berapa?">
+    <title>Budi, Ini Berapa?</title>
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="canonical" href="https://budijoe.github.io/iniberapa/" />
+    <link rel="manifest" href="/iniberapa/manifest.webmanifest">
+    <style>
+        :root {
+            --bg-color: #F9F5F1;
+            --color-green: #08403C;
+            --color-green-light: #f0fff4;
+            --color-red: #c53030;
+            --color-yellow: #d69d2e;
+            --color-dark: #1a202c;
+            --color-gray: #e2e8f0;
+            --color-card: #ffffff;
+            height: -webkit-fill-available;
+            background-color: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: url('https://raw.githubusercontent.com/budijoe/iniberapa/main/mj-bg-03.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: -webkit-fill-available;
+            overflow: hidden;
+            color: var(--color-dark);
+        }
+
+        /* Confetti Overlay Canvas */
+        #confettiCanvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 45;
+        }
+
+        /* App Header */
+        header {
+            background-color: var(--color-green);
+            color: white;
+            padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            text-align: left;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        header .header-logo {
+            height: 2.4rem;
+            width: auto;
+            flex-shrink: 0;
+            object-fit: contain;
+        }
+
+        header .header-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        header h1 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        header p {
+            font-size: 0.7rem;
+            color: var(--color-yellow);
+            margin-top: 2px;
+            line-height: 1.25;
+        }
+
+        /* Main View Container */
+        .content {
+            flex: 1;
+            width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
+            overflow-y: auto;
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Page Titles */
+        .page-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--color-green);
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid var(--color-yellow);
+        }
+
+        .page-subtitle {
+            font-size: 0.78rem;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+
+        /* Sticky Header for Result Page */
+        .sticky-result-header {
+            position: sticky;
+            top: 0;
+            background-color: var(--bg-color);
+            padding-top: 4px;
+            padding-bottom: 8px;
+            z-index: 20;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+        }
+
+        /* Form Controls & Wind Buttons */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--color-dark);
+        }
+
+        .wind-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .wind-btn {
+            background: white;
+            border: 2px solid #cbd5e0;
+            border-radius: 10px;
+            padding: 14px 4px;
+            font-weight: 700;
+            color: var(--color-dark);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .wind-btn .wind-char {
+            font-size: 1.85rem;
+            line-height: 1.1;
+        }
+
+        .wind-btn .wind-sub {
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .wind-btn.selected {
+            border-color: var(--color-green);
+            background-color: var(--color-green-light);
+            color: var(--color-green);
+            box-shadow: 0 0 0 1px var(--color-green);
+        }
+
+        /* Minimal Tay Stepper Control (Page 1) */
+        .min-tay-section {
+            margin-top: 26px;
+            padding-top: 16px;
+            border-top: 1px dashed #cbd5e0;
+        }
+
+        .min-tay-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--color-green);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .min-tay-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: white;
+            border: 2px solid #cbd5e0;
+            border-radius: 14px;
+            padding: 10px 18px;
+            max-width: 280px;
+            margin: 0 auto;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+
+        .min-tay-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: 2px solid var(--color-green);
+            background-color: var(--color-green-light);
+            color: var(--color-green);
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.12s ease;
+            user-select: none;
+        }
+
+        .min-tay-btn:active {
+            transform: scale(0.93);
+            background-color: var(--color-green);
+            color: white;
+        }
+
+        .min-tay-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .min-tay-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--color-green);
+            min-width: 54px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* Radio Options Card */
+        .option-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 9px 12px;
+            margin-bottom: 7px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .option-card.selected {
+            border-color: var(--color-green);
+            background-color: var(--color-green-light);
+        }
+
+        .option-card input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            min-height: 16px;
+            flex-shrink: 0;
+            margin-right: 10px;
+            accent-color: var(--color-green);
+        }
+
+        .option-card .label-text {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        /* Grid Selection for Flowers */
+        .flower-section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--color-green);
+            margin-top: 8px;
+            margin-bottom: 6px;
+        }
+
+        .flower-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .tile-card {
+            background: white;
+            border: 2px solid #cbd5e0;
+            border-radius: 10px;
+            padding: 5px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .tile-card.selected {
+            border-color: var(--color-red);
+            background-color: #fff5f5;
+            box-shadow: 0 0 0 2px var(--color-red);
+        }
+
+        .tile-card img {
+            width: 32px;
+            height: 44px;
+            object-fit: contain;
+        }
+
+        .tile-card .tile-name {
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-top: 3px;
+            text-align: center;
+        }
+
+        /* Hand Input Tabs / Structure */
+        .tab-toggle {
+            display: flex;
+            background: #edf2f7;
+            padding: 3px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 6px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--color-green);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Standard 2-Column Grid Layout for Sets */
+        .standard-sets-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .meld-box {
+            background: white;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 8px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .meld-box.pair-box {
+            grid-column: span 2;
+        }
+
+        .meld-main-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .meld-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--color-green);
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        /* Seven Pairs Layout */
+        .seven-pairs-grid-top {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .seven-pairs-grid-bottom {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 6px;
+            max-width: 78%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .open-toggle {
+            width: 100%;
+            height: 26px;
+            margin-top: 4px;
+            padding: 2px 6px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .open-toggle.closed {
+            background-color: #f0fff4;
+            color: #276749;
+            border: 1.5px solid #9ae6b4;
+        }
+
+        .open-toggle.open {
+            background-color: #ebf8ff;
+            color: #2b6cb0;
+            border: 1.5px solid #90cdf4;
+        }
+
+        .open-toggle:active {
+            transform: scale(0.96);
+        }
+
+        .tile-slot-container {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+
+        .tile-slot {
+            width: 30px;
+            height: 40px;
+            border: 1.5px dashed #cbd5e0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #fafafa;
+        }
+
+        .tile-slot.filled {
+            border-style: solid;
+            border-color: #a0aec0;
+            background: white;
+        }
+
+        .tile-slot.selected {
+            border-color: var(--color-red);
+            box-shadow: 0 0 0 2px var(--color-red);
+            background-color: #fff5f5;
+        }
+
+        .tile-slot img {
+            width: 24px;
+            height: 34px;
+            object-fit: contain;
+        }
+
+        /* Action Toolbar above Tile Picker */
+        .toolbar-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            margin-bottom: 4px;
+        }
+
+        .btn-clear-all {
+            background-color: var(--color-red);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-clear-all:active {
+            opacity: 0.85;
+        }
+
+        /* 9x4 GRID TILE PICKER */
+        .picker-grid-9x4 {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 3px;
+            background: white;
+            border: 1.5px solid #cbd5e0;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .picker-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 1px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #ffffff;
+            transition: transform 0.1s, border-color 0.15s;
+            height: 38px;
+        }
+
+        .picker-item:active {
+            transform: scale(0.92);
+        }
+
+        .picker-item.span-2 {
+            grid-column: span 2;
+            background: #fffdf5;
+            border-color: #d69d2e;
+        }
+
+        .picker-item img {
+            width: 100%;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        /* Result Information Box (Wind Badges) */
+        .wind-info-banner {
+            background: #edf2f7;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--color-dark);
+            text-align: center;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .wind-info-banner span {
+            color: var(--color-green);
+        }
+
+        /* Visual Hand Display in Result Page */
+        .result-visual-box {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #cbd5e0;
+            padding: 10px;
+            margin-bottom: 12px;
+        }
+
+        .visual-section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--color-green);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .visual-flowers-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .visual-flower-card {
+            background: #fffdf5;
+            border: 1px solid #d69d2e;
+            border-radius: 6px;
+            padding: 3px 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.68rem;
+            font-weight: 600;
+        }
+
+        .visual-flower-card img {
+            width: 20px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .visual-sets-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        .visual-set-group {
+            background: #f8fafc;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 6px 6px 4px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .set-status-badge {
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .set-status-badge.open {
+            background-color: #ebf8ff;
+            color: #2b6cb0;
+            border: 1px solid #90cdf4;
+        }
+
+        .set-status-badge.closed {
+            background-color: #f0fff4;
+            color: #276749;
+            border: 1px solid #9ae6b4;
+        }
+
+        .visual-tiles-row {
+            display: flex;
+            gap: 3px;
+        }
+
+        .visual-tile-img {
+            width: 26px;
+            height: 36px;
+            object-fit: contain;
+            background: white;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            padding: 1px;
+        }
+
+        .visual-tile-img.kim-highlight {
+            border: 2px solid var(--color-red);
+            box-shadow: 0 0 5px rgba(197, 48, 48, 0.5);
+        }
+
+        /* Navigation Footer */
+        footer {
+            background-color: white;
+            border-top: 1px solid #e2e8f0;
+            padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            gap: 8px;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        footer > .btn {
+            flex: 1;
+            max-width: 260px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 11px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.83rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: opacity 0.15s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-back {
+            background-color: #edf2f7;
+            color: var(--color-dark);
+        }
+
+        .btn-next {
+            background-color: var(--color-green);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--color-red);
+            color: white;
+        }
+
+        .btn-yellow {
+            background-color: var(--color-yellow);
+            color: white;
+        }
+
+        /* Result Breakdown & Score Box */
+        .score-box {
+            background: var(--color-green);
+            color: white;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: background-color 0.35s ease, border-color 0.35s ease, transform 0.15s ease, box-shadow 0.25s ease;
+        }
+
+        .score-box:active {
+            transform: scale(0.985);
+        }
+
+        .score-box.celebrate-glow {
+            animation: boxGlowPulse 0.65s ease-out;
+        }
+
+        /* State saat nilai < Minimal Hu (Gentle Rejection) */
+        .score-box.insufficient-score {
+            background: #742A2A;
+            border-color: #FC8181;
+            box-shadow: 0 4px 12px rgba(197, 48, 48, 0.28);
+        }
+
+        .score-box.insufficient-score .score-val {
+            color: #FEB2B2;
+        }
+
+        .score-box .score-val {
+            display: inline-block;
+            font-size: 2.15rem;
+            font-weight: 800;
+            color: var(--color-yellow);
+            line-height: 1.1;
+            transform-origin: center center;
+            will-change: transform, opacity;
+            transition: color 0.3s ease;
+        }
+
+        .score-box .score-val.score-pop-anim {
+            animation: scoreBurstPop 0.55s cubic-bezier(0.22, 1.35, 0.36, 1) forwards;
+        }
+
+        .score-box .score-val.score-shake-anim {
+            animation: scoreSubtleShake 0.38s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        .score-box .score-tay {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            margin-top: 2px;
+        }
+
+        .insufficient-badge {
+            display: none;
+            margin: 6px auto 2px auto;
+            padding: 4px 10px;
+            background-color: rgba(26, 32, 44, 0.55);
+            border: 1px solid #FEB2B2;
+            color: #FFF5F5;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            border-radius: 999px;
+            width: fit-content;
+        }
+
+        .insufficient-badge.visible {
+            display: inline-block;
+            animation: badgeStampIn 0.26s cubic-bezier(0.2, 1.25, 0.4, 1) forwards;
+        }
+
+        .score-replay-hint {
+            font-size: 0.62rem;
+            color: rgba(255, 255, 255, 0.65);
+            margin-top: 4px;
+            letter-spacing: 0.2px;
+        }
+
+        @keyframes scoreBurstPop {
+            0% {
+                transform: scale(0.75);
+                text-shadow: 0 0 0 rgba(214, 157, 46, 0);
+            }
+            42% {
+                transform: scale(1.34);
+                text-shadow: 0 0 18px rgba(255, 224, 102, 0.85);
+            }
+            70% {
+                transform: scale(0.94);
+                text-shadow: 0 0 8px rgba(214, 157, 46, 0.4);
+            }
+            100% {
+                transform: scale(1);
+                text-shadow: 0 0 0 rgba(214, 157, 46, 0);
+            }
+        }
+
+        @keyframes scoreSubtleShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-5px); }
+            40% { transform: translateX(5px); }
+            60% { transform: translateX(-3px); }
+            80% { transform: translateX(3px); }
+        }
+
+        @keyframes badgeStampIn {
+            0% {
+                opacity: 0;
+                transform: scale(1.14);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes boxGlowPulse {
+            0% {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            35% {
+                box-shadow: 0 0 0 4px rgba(214, 157, 46, 0.45), 0 8px 18px rgba(8, 64, 60, 0.28);
+            }
+            100% {
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        .breakdown-list {
+            background: white;
+            border-radius: 12px;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            padding: 6px 0;
+            border-bottom: 1px dashed #edf2f7;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .breakdown-item .pts {
+            font-weight: 700;
+            color: var(--color-green);
+        }
+
+        .breakdown-item.batal .pts {
+            color: var(--color-red);
+        }
+
+        /* Custom Confirmation Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 32, 44, 0.65);
+            backdrop-filter: blur(2px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 50;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            width: 100%;
+            max-width: 330px;
+            background-color: var(--bg-color);
+            border: 2px solid var(--color-red);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.35);
+            animation: popIn 0.18s ease-out;
+        }
+
+        .modal-header-warn {
+            background-color: var(--color-red);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-bottom: 3px solid var(--color-yellow);
+        }
+
+        .modal-header-warn h2 {
+            font-size: 0.98rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+        }
+
+        .modal-body {
+            padding: 18px 16px 14px 16px;
+            text-align: center;
+        }
+
+        .modal-warn-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background-color: #fff5f5;
+            border: 2px solid #feb2b2;
+            color: var(--color-red);
+            font-size: 1.45rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-body p {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--color-dark);
+            line-height: 1.45;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            padding: 0 16px 16px 16px;
+        }
+
+        .modal-actions .btn {
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            border-radius: 10px;
+        }
+
+        .btn-modal-cancel {
+            background-color: #ffffff;
+            color: var(--color-dark);
+            border: 1.5px solid #cbd5e0;
+        }
+
+        .btn-modal-confirm {
+            background-color: var(--color-red);
+            color: white;
+            box-shadow: 0 2px 6px rgba(197, 48, 48, 0.35);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Floating Info Toast */
+        .toast-msg {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            z-index: 100;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <header>
+        <img src="https://raw.githubusercontent.com/budijoe/skor-mahjong/main/budijoe-pixel.svg" alt="budijoe" class="header-logo">
+        <div class="header-text">
+            <h1>BUDI, INI BERAPA?</h1>
+            <p>Aplikasi Otomatis untuk Menghitung Nilai Kemenangan Mahjong dengan Sistem Bandung YDSP — by budijoe</p>
+        </div>
+    </header>
+
+    <main class="content" id="appContent">
+        <!-- Rendered dynamically -->
+    </main>
+
+    <footer id="appFooter">
+        <!-- Nav buttons rendered dynamically -->
+    </footer>
+
+    <!-- Custom Reset Confirmation Modal -->
+    <div id="resetModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="resetModalTitle" onclick="handleModalBackdropClick(event)">
+        <div class="modal-card">
+            <div class="modal-header-warn">
+                <span>⚠️</span>
+                <h2 id="resetModalTitle">Ulangi Dari Awal</h2>
+            </div>
+            <div class="modal-body">
+                <div class="modal-warn-badge">‼️</div>
+                <p>Hapus semua data dan mulai lagi dari awal?</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-modal-cancel" onclick="closeResetModal()">Tidak</button>
+                <button type="button" class="btn btn-modal-confirm" onclick="confirmResetAction()">Ya</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastMsg" class="toast-msg"></div>
+
+<script>
+    // Audio synthesizer untuk bunyi klik tombol, efek pop confetti, dan ketukan kayu saat skor kurang
+    let audioCtx = null;
+
+    function getAudioContext() {
+        if (!audioCtx) {
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                audioCtx = new AudioContextClass();
+            }
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        return audioCtx;
+    }
+
+    function playClickSound() {
+        try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(2800, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.02);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.02);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.02);
+        } catch(e) {}
+    }
+
+    // Suara pop lembut (subtle pop + warm harmonic sparkle) saat nilai cukup untuk Hu
+    function playSubtlePopSound() {
+        try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+
+            const popOsc = ctx.createOscillator();
+            const popGain = ctx.createGain();
+            popOsc.type = 'sine';
+            popOsc.frequency.setValueAtTime(210, now);
+            popOsc.frequency.exponentialRampToValueAtTime(520, now + 0.045);
+            popOsc.frequency.exponentialRampToValueAtTime(320, now + 0.095);
+
+            popGain.gain.setValueAtTime(0.001, now);
+            popGain.gain.linearRampToValueAtTime(0.095, now + 0.012);
+            popGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.11);
+
+            popOsc.connect(popGain);
+            popGain.connect(ctx.destination);
+            popOsc.start(now);
+            popOsc.stop(now + 0.115);
+
+            const chimeOsc = ctx.createOscillator();
+            const chimeGain = ctx.createGain();
+            chimeOsc.type = 'triangle';
+            chimeOsc.frequency.setValueAtTime(1046.5, now + 0.02);
+            chimeOsc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.08);
+
+            chimeGain.gain.setValueAtTime(0.0005, now + 0.02);
+            chimeGain.gain.linearRampToValueAtTime(0.032, now + 0.035);
+            chimeGain.gain.exponentialRampToValueAtTime(0.0005, now + 0.24);
+
+            chimeOsc.connect(chimeGain);
+            chimeGain.connect(ctx.destination);
+            chimeOsc.start(now + 0.02);
+            chimeOsc.stop(now + 0.25);
+        } catch(e) {}
+    }
+
+    // Suara dua ketukan kayu lembut bernada turun (soft descending wood-knock) saat nilai < minimal Hu
+    function playInsufficientKnockSound() {
+        try {
+            const ctx = getAudioContext();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+
+            const triggerKnock = (startTime, startFreq, endFreq) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(startFreq, startTime);
+                osc.frequency.exponentialRampToValueAtTime(endFreq, startTime + 0.055);
+
+                gain.gain.setValueAtTime(0.001, startTime);
+                gain.gain.linearRampToValueAtTime(0.085, startTime + 0.008);
+                gain.gain.exponentialRampToValueAtTime(0.0008, startTime + 0.075);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(startTime);
+                osc.stop(startTime + 0.08);
+            };
+
+            // Ketukan 1 (~265Hz -> 185Hz), jeda 95ms, Ketukan 2 turun (~205Hz -> 140Hz)
+            triggerKnock(now, 265, 185);
+            triggerKnock(now + 0.095, 205, 140);
+        } catch(e) {}
+    }
+
+    // Sistem partikel confetti yang meledak tepat dari koordinat elemen angka skor
+    let confettiParticles = [];
+    let confettiAnimFrame = null;
+    let scoreCounterFrame = null;
+
+    function launchConfettiFromElement(targetEl) {
+        const canvas = document.getElementById('confettiCanvas');
+        if (!canvas || !targetEl) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        const rect = targetEl.getBoundingClientRect();
+        const originX = rect.left + rect.width / 2;
+        const originY = rect.top + rect.height / 2;
+
+        const colors = ['#F6C344', '#FFE082', '#E53E3E', '#38A169', '#FFFFFF', '#D69D2E', '#68D391'];
+        const shapes = ['rect', 'circle', 'ribbon'];
+        const particleCount = 46;
+
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i) / particleCount + (Math.random() - 0.5) * 0.35;
+            const speed = 2.4 + Math.random() * 5.2;
+            confettiParticles.push({
+                x: originX + (Math.random() - 0.5) * 14,
+                y: originY + (Math.random() - 0.5) * 8,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 1.8,
+                gravity: 0.16 + Math.random() * 0.06,
+                drag: 0.965,
+                size: 4.5 + Math.random() * 4.5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                shape: shapes[Math.floor(Math.random() * shapes.length)],
+                rotation: Math.random() * Math.PI * 2,
+                rotationSpeed: (Math.random() - 0.5) * 0.24,
+                wobble: Math.random() * Math.PI * 2,
+                wobbleSpeed: 0.08 + Math.random() * 0.08,
+                alpha: 1,
+                decay: 0.013 + Math.random() * 0.008
+            });
+        }
+
+        if (!confettiAnimFrame) {
+            renderConfettiLoop();
+        }
+    }
+
+    function renderConfettiLoop() {
+        const canvas = document.getElementById('confettiCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        ctx.clearRect(0, 0, width, height);
+
+        for (let i = confettiParticles.length - 1; i >= 0; i--) {
+            const p = confettiParticles[i];
+            p.vx *= p.drag;
+            p.vy = p.vy * p.drag + p.gravity;
+            p.x += p.vx + Math.sin(p.wobble) * 0.45;
+            p.y += p.vy;
+            p.rotation += p.rotationSpeed;
+            p.wobble += p.wobbleSpeed;
+            p.alpha -= p.decay;
+
+            if (p.alpha <= 0 || p.y > height + 20) {
+                confettiParticles.splice(i, 1);
+                continue;
+            }
+
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation);
+            ctx.fillStyle = p.color;
+
+            if (p.shape === 'circle') {
+                ctx.beginPath();
+                ctx.arc(0, 0, p.size * 0.48, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (p.shape === 'ribbon') {
+                ctx.fillRect(-p.size * 0.7, -p.size * 0.25, p.size * 1.4, p.size * 0.5);
+            } else {
+                ctx.fillRect(-p.size * 0.45, -p.size * 0.45, p.size * 0.9, p.size * 0.9);
+            }
+            ctx.restore();
+        }
+
+        if (confettiParticles.length > 0) {
+            confettiAnimFrame = requestAnimationFrame(renderConfettiLoop);
+        } else {
+            confettiAnimFrame = null;
+            ctx.clearRect(0, 0, width, height);
+        }
+    }
+
+    // Evaluasi akhir skor: Celebration jika >= minTayToHu, Gentle Rejection jika < minTayToHu
+    function triggerScoreEvaluationFeedback(finalScore, instantReplay = false) {
+        const scoreValEl = document.getElementById('finalScoreVal');
+        const scoreBoxEl = document.getElementById('finalScoreBox');
+        const badgeEl = document.getElementById('insufficientBadge');
+        const hintEl = document.getElementById('scoreReplayHint');
+        if (!scoreValEl) return;
+
+        if (scoreCounterFrame) {
+            cancelAnimationFrame(scoreCounterFrame);
+            scoreCounterFrame = null;
+        }
+
+        const minReq = Number(state.minTayToHu) || 5;
+        const isInsufficient = finalScore < minReq;
+
+        // Reset animasi & state visual
+        scoreValEl.classList.remove('score-pop-anim', 'score-shake-anim');
+        if (scoreBoxEl) {
+            scoreBoxEl.classList.remove('celebrate-glow');
+            if (!instantReplay) {
+                scoreBoxEl.classList.remove('insufficient-score');
+            }
+        }
+        if (badgeEl && !instantReplay) {
+            badgeEl.classList.remove('visible');
+        }
+        void scoreValEl.offsetWidth; // Force reflow
+
+        const applyFinalFeedback = () => {
+            scoreValEl.innerText = finalScore;
+            void scoreValEl.offsetWidth;
+
+            if (isInsufficient) {
+                if (scoreBoxEl) scoreBoxEl.classList.add('insufficient-score');
+                if (badgeEl) {
+                    badgeEl.innerText = `⛔ KURANG DARI ${minReq} TAY — TIDAK BOLEH HU`;
+                    badgeEl.classList.remove('visible');
+                    void badgeEl.offsetWidth;
+                    badgeEl.classList.add('visible');
+                }
+                if (hintEl) {
+                    hintEl.innerText = `Minimum ${minReq} Tay untuk sah Hu`;
+                }
+                scoreValEl.classList.add('score-shake-anim');
+                playInsufficientKnockSound();
+            } else {
+                if (scoreBoxEl) {
+                    scoreBoxEl.classList.remove('insufficient-score');
+                    scoreBoxEl.classList.add('celebrate-glow');
+                }
+                if (badgeEl) badgeEl.classList.remove('visible');
+                if (hintEl) {
+                    hintEl.innerText = `✨ Ketuk kotak untuk efek ulang`;
+                }
+                scoreValEl.classList.add('score-pop-anim');
+                playSubtlePopSound();
+                launchConfettiFromElement(scoreValEl);
+            }
+        };
+
+        if (instantReplay || finalScore <= 0) {
+            applyFinalFeedback();
+            return;
+        }
+
+        const duration = 320;
+        const startTime = performance.now();
+
+        function stepCount(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const currentVal = Math.round(eased * finalScore);
+            scoreValEl.innerText = currentVal;
+
+            if (progress < 1) {
+                scoreCounterFrame = requestAnimationFrame(stepCount);
+            } else {
+                scoreCounterFrame = null;
+                applyFinalFeedback();
+            }
+        }
+
+        scoreCounterFrame = requestAnimationFrame(stepCount);
+    }
+
+    // Global listener untuk klik tombol agar otomatis berbunyi klik
+    document.addEventListener('click', function(e) {
+        const target = e.target.closest('button, .wind-btn, .option-card, .tile-card, .tab-btn, .open-toggle, .tile-slot, .picker-item, .btn-clear-all, .min-tay-btn');
+        if (target) {
+            playClickSound();
+        }
+    }, true);
+
+    const SVG_MASTER = "https://raw.githubusercontent.com/budijoe/skor-mahjong/main/";
+
+    const flowerTiles = [
+        { id: 'f_red_1', name: '1 Merah', code: 'red1', img: SVG_MASTER + 'svg/35-spring.svg' },
+        { id: 'f_red_2', name: '2 Merah', code: 'red2', img: SVG_MASTER + 'svg/36-summer.svg' },
+        { id: 'f_red_3', name: '3 Merah', code: 'red3', img: SVG_MASTER + 'svg/37-autumn.svg' },
+        { id: 'f_red_4', name: '4 Merah', code: 'red4', img: SVG_MASTER + 'svg/38-winter.svg' },
+        { id: 'f_black_1', name: '1 Hitam', code: 'black1', img: SVG_MASTER + 'svg/39-plum.svg' },
+        { id: 'f_black_2', name: '2 Hitam', code: 'black2', img: SVG_MASTER + 'svg/40-orchid.svg' },
+        { id: 'f_black_3', name: '3 Hitam', code: 'black3', img: SVG_MASTER + 'svg/41-chrysanthemum.svg' },
+        { id: 'f_black_4', name: '4 Hitam', code: 'black4', img: SVG_MASTER + 'svg/42-bamboo.svg' }
+    ];
+
+    const standardTiles = [
+        { id: '1_wan', label: '1 Wan', type: 'wan', val: 1, img: SVG_MASTER + 'svg/08-characters-1.svg' },
+        { id: '2_wan', label: '2 Wan', type: 'wan', val: 2, img: SVG_MASTER + 'svg/09-characters-2.svg' },
+        { id: '3_wan', label: '3 Wan', type: 'wan', val: 3, img: SVG_MASTER + 'svg/10-characters-3.svg' },
+        { id: '4_wan', label: '4 Wan', type: 'wan', val: 4, img: SVG_MASTER + 'svg/11-characters-4.svg' },
+        { id: '5_wan', label: '5 Wan', type: 'wan', val: 5, img: SVG_MASTER + 'svg/12-characters-5.svg' },
+        { id: '6_wan', label: '6 Wan', type: 'wan', val: 6, img: SVG_MASTER + 'svg/13-characters-6.svg' },
+        { id: '7_wan', label: '7 Wan', type: 'wan', val: 7, img: SVG_MASTER + 'svg/14-characters-7.svg' },
+        { id: '8_wan', label: '8 Wan', type: 'wan', val: 8, img: SVG_MASTER + 'svg/15-characters-8.svg' },
+        { id: '9_wan', label: '9 Wan', type: 'wan', val: 9, img: SVG_MASTER + 'svg/16-characters-9.svg' },
+        { id: '1_sok', label: '1 Sok', type: 'sok', val: 1, img: SVG_MASTER + 'svg/26-bamboos-1.svg' },
+        { id: '2_sok', label: '2 Sok', type: 'sok', val: 2, img: SVG_MASTER + 'svg/27-bamboos-2.svg' },
+        { id: '3_sok', label: '3 Sok', type: 'sok', val: 3, img: SVG_MASTER + 'svg/28-bamboos-3.svg' },
+        { id: '4_sok', label: '4 Sok', type: 'sok', val: 4, img: SVG_MASTER + 'svg/29-bamboos-4.svg' },
+        { id: '5_sok', label: '5 Sok', type: 'sok', val: 5, img: SVG_MASTER + 'svg/30-bamboos-5.svg' },
+        { id: '6_sok', label: '6 Sok', type: 'sok', val: 6, img: SVG_MASTER + 'svg/31-bamboos-6.svg' },
+        { id: '7_sok', label: '7 Sok', type: 'sok', val: 7, img: SVG_MASTER + 'svg/32-bamboos-7.svg' },
+        { id: '8_sok', label: '8 Sok', type: 'sok', val: 8, img: SVG_MASTER + 'svg/33-bamboos-8.svg' },
+        { id: '9_sok', label: '9 Sok', type: 'sok', val: 9, img: SVG_MASTER + 'svg/34-bamboos-9.svg' },
+        { id: '1_tong', label: '1 Tong', type: 'tong', val: 1, img: SVG_MASTER + 'svg/17-circles-1-variant-4.svg' },
+        { id: '2_tong', label: '2 Tong', type: 'tong', val: 2, img: SVG_MASTER + 'svg/18-circles-2.svg' },
+        { id: '3_tong', label: '3 Tong', type: 'tong', val: 3, img: SVG_MASTER + 'svg/19-circles-3.svg' },
+        { id: '4_tong', label: '4 Tong', type: 'tong', val: 4, img: SVG_MASTER + 'svg/20-circles-4.svg' },
+        { id: '5_tong', label: '5 Tong', type: 'tong', val: 5, img: SVG_MASTER + 'svg/21-circles-5.svg' },
+        { id: '6_tong', label: '6 Tong', type: 'tong', val: 6, img: SVG_MASTER + 'svg/22-circles-6.svg' },
+        { id: '7_tong', label: '7 Tong', type: 'tong', val: 7, img: SVG_MASTER + 'svg/23-circles-7.svg' },
+        { id: '8_tong', label: '8 Tong', type: 'tong', val: 8, img: SVG_MASTER + 'svg/24-circles-8.svg' },
+        { id: '9_tong', label: '9 Tong', type: 'tong', val: 9, img: SVG_MASTER + 'svg/25-circles-9.svg' },
+        { id: 'cung', label: 'Cung (Red Dragon)', type: 'dragon', val: 'cung', img: SVG_MASTER + 'svg/03-red-dragon.svg' },
+        { id: 'fat', label: 'Fat (Green Dragon)', type: 'dragon', val: 'fat', img: SVG_MASTER + 'svg/02-green-dragon.svg' },
+        { id: 'pai', label: 'Pai (White Dragon)', type: 'dragon', val: 'pai', img: SVG_MASTER + 'svg/01-white-dragon.svg' },
+        { id: 'tung', label: 'Tung (East)', type: 'wind', val: 1, img: SVG_MASTER + 'svg/04-east-wind.svg' },
+        { id: 'nan', label: 'Nan (South)', type: 'wind', val: 2, img: SVG_MASTER + 'svg/05-south-wind.svg' },
+        { id: 'si', label: 'Si (West)', type: 'wind', val: 3, img: SVG_MASTER + 'svg/06-west-wind.svg' },
+        { id: 'pei', label: 'Pei (North)', type: 'wind', val: 4, img: SVG_MASTER + 'svg/07-north-wind.svg' },
+        { id: 'kim', label: 'KIM / Joker', type: 'kim', val: 'kim', img: SVG_MASTER + 'svg/44-joker-clown.svg', span2: true }
+    ];
+
+    const windNamesMap = {
+        1: '東 (East) 1',
+        2: '南 (South) 2',
+        3: '西 (West) 3',
+        4: '北 (North) 4'
+    };
+
+    const PERSISTENT_PREFS_KEY = 'ydsp_persistent_prefs';
+
+    let state = {
+        currentPage: 1,
+        seatWind: 1,
+        prevalentWind: 1,
+        minTayToHu: 5,
+        winWay: 'buangan',
+        selectedFlowers: [],
+        handMode: 'standard',
+        standardMelds: [
+            { tiles: [null, null, null], isOpen: false },
+            { tiles: [null, null, null], isOpen: false },
+            { tiles: [null, null, null], isOpen: false },
+            { tiles: [null, null, null], isOpen: false },
+            { tiles: [null, null], isOpen: false }
+        ],
+        sevenPairs: [
+            [null, null], [null, null], [null, null],
+            [null, null], [null, null], [null, null], [null, null]
+        ],
+        specialHand: 'none'
+    };
+
+    let activeSlotTarget = null;
+
+    // Simpan preferensi persistent (Angin Duduk, Angin Meja, Minimal Tay untuk Hu) secara terpisah
+    function savePersistentPrefs() {
+        try {
+            localStorage.setItem(PERSISTENT_PREFS_KEY, JSON.stringify({
+                seatWind: state.seatWind,
+                prevalentWind: state.prevalentWind,
+                minTayToHu: state.minTayToHu
+            }));
+        } catch(e) {}
+    }
+
+    function loadPersistentPrefs() {
+        try {
+            const prefsRaw = localStorage.getItem(PERSISTENT_PREFS_KEY);
+            if (prefsRaw) {
+                const prefs = JSON.parse(prefsRaw);
+                if ([1, 2, 3, 4].includes(prefs.seatWind)) state.seatWind = prefs.seatWind;
+                if ([1, 2, 3, 4].includes(prefs.prevalentWind)) state.prevalentWind = prefs.prevalentWind;
+                if (typeof prefs.minTayToHu === 'number' && prefs.minTayToHu >= 1) {
+                    state.minTayToHu = prefs.minTayToHu;
+                }
+            }
+        } catch(e) {}
+    }
+
+    function saveState() {
+        try {
+            localStorage.setItem('ydsp_app_state', JSON.stringify(state));
+            savePersistentPrefs();
+        } catch(e) {}
+    }
+
+    function loadState() {
+        try {
+            const saved = localStorage.getItem('ydsp_app_state');
+            if (saved) {
+                state = Object.assign(state, JSON.parse(saved));
+            }
+        } catch(e) {}
+        loadPersistentPrefs();
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById('toastMsg');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 2000);
+    }
+
+    function navigateTo(page) {
+        state.currentPage = page;
+        saveState();
+        render();
+        const contentEl = document.getElementById('appContent');
+        if (contentEl) contentEl.scrollTop = 0;
+    }
+
+    function openResetModal() {
+        const modal = document.getElementById('resetModal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    }
+
+    function closeResetModal() {
+        const modal = document.getElementById('resetModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+    }
+
+    function handleModalBackdropClick(event) {
+        if (event.target && event.target.id === 'resetModal') {
+            closeResetModal();
+        }
+    }
+
+    function confirmResetAction() {
+        closeResetModal();
+        resetAll();
+    }
+
+    function resetAll() {
+        // Pertahankan pilihan Angin Duduk, Angin Meja, dan Minimal Tay untuk Hu milik user
+        const preservedSeatWind = state.seatWind;
+        const preservedPrevalentWind = state.prevalentWind;
+        const preservedMinTayToHu = state.minTayToHu;
+
+        try {
+            localStorage.removeItem('ydsp_app_state');
+        } catch(e) {}
+
+        state = {
+            currentPage: 1,
+            seatWind: preservedSeatWind,
+            prevalentWind: preservedPrevalentWind,
+            minTayToHu: preservedMinTayToHu,
+            winWay: 'buangan',
+            selectedFlowers: [],
+            handMode: 'standard',
+            standardMelds: [
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null], isOpen: false }
+            ],
+            sevenPairs: [
+                [null, null], [null, null], [null, null],
+                [null, null], [null, null], [null, null], [null, null]
+            ],
+            specialHand: 'none'
+        };
+        activeSlotTarget = null;
+        savePersistentPrefs();
+        navigateTo(1);
+    }
+
+    function clearAllHandSlots() {
+        if (state.handMode === 'standard') {
+            state.standardMelds = [
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null, null], isOpen: false },
+                { tiles: [null, null], isOpen: false }
+            ];
+        } else {
+            state.sevenPairs = [
+                [null, null], [null, null], [null, null],
+                [null, null], [null, null], [null, null], [null, null]
+            ];
+        }
+        activeSlotTarget = { mode: state.handMode, groupIndex: 0, slotIndex: 0 };
+        saveState();
+        render();
+        showToast('Semua slot kartu berhasil dibersihkan');
+    }
+
+    function render() {
+        const content = document.getElementById('appContent');
+        const footer = document.getElementById('appFooter');
+
+        content.innerHTML = '';
+        footer.innerHTML = '';
+
+        switch(state.currentPage) {
+            case 1: renderPage1(content, footer); break;
+            case 2: renderPage2(content, footer); break;
+            case 3: renderPage3(content, footer); break;
+            case 4: renderPage4(content, footer); break;
+            case 5: renderPage5(content, footer); break;
+            case 6: renderPage6(content, footer); break;
+        }
+    }
+
+    function renderPage1(content, footer) {
+        const winds = [
+            { val: 1, char: '東', sub: '(East)' },
+            { val: 2, char: '南', sub: '(South)' },
+            { val: 3, char: '西', sub: '(West)' },
+            { val: 4, char: '北', sub: '(North)' }
+        ];
+
+        let seatBtnsHtml = winds.map(w => `
+            <button class="wind-btn ${state.seatWind === w.val ? 'selected' : ''}" onclick="setSeatWind(${w.val})">
+                <span class="wind-char">${w.char}</span>
+                <span class="wind-sub">${w.sub}</span>
+            </button>
+        `).join('');
+
+        let prevalentBtnsHtml = winds.map(w => `
+            <button class="wind-btn ${state.prevalentWind === w.val ? 'selected' : ''}" onclick="setPrevalentWind(${w.val})">
+                <span class="wind-char">${w.char}</span>
+                <span class="wind-sub">${w.sub}</span>
+            </button>
+        `).join('');
+
+        const minTay = Number(state.minTayToHu) || 5;
+
+        content.innerHTML = `
+            <div class="page-title">1. Angin Duduk & Angin Meja</div>
+            <div class="page-subtitle">Pilih posisi Angin Duduk (Seat Wind) dan Angin Meja (Prevalent Wind) Pemenang:</div>
+            
+            <div class="form-group">
+                <label>Angin Duduk (Seat Wind):</label>
+                <div class="wind-grid">${seatBtnsHtml}</div>
+            </div>
+
+            <div class="form-group" style="margin-top: 14px;">
+                <label>Angin Meja (Prevalent Wind):</label>
+                <div class="wind-grid">${prevalentBtnsHtml}</div>
+            </div>
+
+            <div class="min-tay-section">
+                <div class="min-tay-label">Minimal Tay untuk Hu</div>
+                <div class="min-tay-control">
+                    <button type="button" class="min-tay-btn" onclick="adjustMinTay(-1)" ${minTay <= 1 ? 'disabled' : ''} aria-label="Kurangi minimal Tay">-1</button>
+                    <div class="min-tay-value" id="minTayDisplay">${minTay}</div>
+                    <button type="button" class="min-tay-btn" onclick="adjustMinTay(1)" aria-label="Tambah minimal Tay">+1</button>
+                </div>
+            </div>
+        `;
+
+        footer.innerHTML = `<button class="btn btn-next" onclick="navigateTo(2)">Selanjutnya →</button>`;
+    }
+
+    function setSeatWind(val) {
+        state.seatWind = val;
+        saveState();
+        render();
+    }
+
+    function setPrevalentWind(val) {
+        state.prevalentWind = val;
+        saveState();
+        render();
+    }
+
+    function adjustMinTay(delta) {
+        const current = Number(state.minTayToHu) || 5;
+        const nextVal = Math.max(1, current + delta);
+        state.minTayToHu = nextVal;
+        saveState();
+        render();
+    }
+
+    function renderPage2(content, footer) {
+        const ways = [
+            { id: 'buangan', label: 'Buangan Orang', desc: 'Menang dari buangan pemain lain' },
+            { id: 'cemo', label: 'Ce Mo (Self-Draw)', desc: 'Menang dengan ambil kartu sendiri dari cangkulan.<br>(+1 Poin)' },
+            { id: 'mun', label: 'Mun (Concealed Hand)', desc: 'Tidak pernah CHOW atau PUNG dari pemain lain kecuali terakhir untuk Hu.<br>(+1 Poin)' },
+            { id: 'cemopu', label: 'Ce Mo Pu Ciu Jen (Fully Concealed)', desc: 'Hu tanpa bantuan orang lain (tanpa cia, pung, kong dari orang lain). Kartu terakhir untuk jadi ambil sendiri.<br>(+5 Poin)' },
+            { id: 'chiongkong', label: 'Chiong Kong (Robbing the Kong)', desc: 'Merebut kartu yang akan dijadikan Kong oleh pemain lain.<br>(+5 Poin)' },
+            { id: 'kongsong', label: 'Kong Song Hu (Kong Replacement)', desc: 'Ambil pengganti kong, dan Hu.<br>(+5 Poin)' },
+            { id: 'kongkong', label: 'Kong Kong Hu (Double Kong)', desc: 'Hu dari Pengganti Kong yang Kedua kali berturut-turut.<br>(+30 Poin)' }
+        ];
+
+        let optionsHtml = ways.map(w => `
+            <div class="option-card ${state.winWay === w.id ? 'selected' : ''}" onclick="selectWinWay('${w.id}')">
+                <input type="radio" name="winway" ${state.winWay === w.id ? 'checked' : ''}>
+                <div>
+                    <div class="label-text">${w.label}</div>
+                    <div style="font-size:0.7rem; color:#718096;">${w.desc}</div>
+                </div>
+            </div>
+        `).join('');
+
+        content.innerHTML = `
+            <div class="page-title">2. Cara Menang</div>
+            <div class="page-subtitle">Pilih satu cara menang yang didapatkan:</div>
+            ${optionsHtml}
+        `;
+
+        footer.innerHTML = `
+            <button class="btn btn-back" onclick="navigateTo(1)">← Kembali</button>
+            <button class="btn btn-next" onclick="navigateTo(3)">Selanjutnya →</button>
+        `;
+    }
+
+    function selectWinWay(id) {
+        state.winWay = id;
+        saveState();
+        render();
+    }
+
+    function renderPage3(content, footer) {
+        const redFlowers = flowerTiles.filter(f => f.code.startsWith('red'));
+        const blackFlowers = flowerTiles.filter(f => f.code.startsWith('black'));
+
+        const renderFlowerCards = (list) => list.map(f => {
+            const isSel = state.selectedFlowers.includes(f.id);
+            return `
+                <div class="tile-card ${isSel ? 'selected' : ''}" onclick="toggleFlower('${f.id}')">
+                    <img src="${f.img}" alt="${f.name}">
+                    <div class="tile-name">${f.name}</div>
+                </div>
+            `;
+        }).join('');
+
+        content.innerHTML = `
+            <div class="page-title">3. Kartu Bunga</div>
+            <div class="page-subtitle">Tap kartu bunga yang Anda miliki (bisa lebih dari 1 atau kosongkan jika tidak ada):</div>
+            
+            <div class="flower-section-title">🌹 Bunga Merah</div>
+            <div class="flower-grid-4">${renderFlowerCards(redFlowers)}</div>
+
+            <div class="flower-section-title" style="margin-top: 18px;">🪻 Bunga Hitam</div>
+            <div class="flower-grid-4">${renderFlowerCards(blackFlowers)}</div>
+        `;
+
+        footer.innerHTML = `
+            <button class="btn btn-back" onclick="navigateTo(2)">← Kembali</button>
+            <button class="btn btn-next" onclick="navigateTo(4)">Selanjutnya →</button>
+        `;
+    }
+
+    function toggleFlower(id) {
+        const idx = state.selectedFlowers.indexOf(id);
+        if (idx > -1) {
+            state.selectedFlowers.splice(idx, 1);
+        } else {
+            state.selectedFlowers.push(id);
+        }
+        saveState();
+        render();
+    }
+
+    function renderPage4(content, footer) {
+        if (!activeSlotTarget) {
+            activeSlotTarget = { mode: state.handMode, groupIndex: 0, slotIndex: 0 };
+        }
+
+        let meldSection = '';
+
+        if (state.handMode === 'standard') {
+            let gridPairsHtml = '';
+            let pairHtml = '';
+
+            for (let i = 0; i < 5; i++) {
+                const isPair = i === 4;
+                const meld = state.standardMelds[i];
+                const slotsCount = isPair ? 2 : 3;
+                let slotsHtml = '';
+
+                for (let s = 0; s < slotsCount; s++) {
+                    const tileId = meld.tiles[s];
+                    const tileObj = standardTiles.find(t => t.id === tileId);
+                    const isTarget = activeSlotTarget && activeSlotTarget.mode === 'standard' && activeSlotTarget.groupIndex === i && activeSlotTarget.slotIndex === s;
+
+                    slotsHtml += `
+                        <div class="tile-slot ${tileObj ? 'filled' : ''} ${isTarget ? 'selected' : ''}" 
+                             onclick="selectSlot('standard', ${i}, ${s})">
+                            ${tileObj ? `<img src="${tileObj.img}" title="${tileObj.label}">` : '+'}
+                        </div>
+                    `;
+                }
+
+                let toggleOpenHtml = '';
+                if (!isPair) {
+                    toggleOpenHtml = `
+                        <button type="button" class="open-toggle ${meld.isOpen ? 'open' : 'closed'}"
+                                aria-pressed="${meld.isOpen ? 'true' : 'false'}"
+                                onclick="toggleMeldOpen(${i}, ${!meld.isOpen})">
+                            ${meld.isOpen ? 'TERBUKA' : 'TERTUTUP'}
+                        </button>
+                    `;
+                }
+
+                const cardHtml = `
+                    <div class="meld-box ${isPair ? 'pair-box' : ''}">
+                        <div class="meld-main-col">
+                            <span class="meld-title">${isPair ? 'Kaki / Ciok (Pair)' : 'Set ' + (i + 1)}</span>
+                            <div class="tile-slot-container">${slotsHtml}</div>
+                        </div>
+                        ${toggleOpenHtml}
+                    </div>
+                `;
+
+                if (isPair) {
+                    pairHtml = cardHtml;
+                } else {
+                    gridPairsHtml += cardHtml;
+                }
+            }
+
+            meldSection = `
+                <div class="standard-sets-grid">${gridPairsHtml}</div>
+                <div>${pairHtml}</div>
+            `;
+        } else {
+            let topRowHtml = '';
+            let bottomRowHtml = '';
+
+            for (let i = 0; i < 7; i++) {
+                const pair = state.sevenPairs[i];
+                let slotsHtml = '';
+
+                for (let s = 0; s < 2; s++) {
+                    const tileId = pair[s];
+                    const tileObj = standardTiles.find(t => t.id === tileId);
+                    const isTarget = activeSlotTarget && activeSlotTarget.mode === 'seven' && activeSlotTarget.groupIndex === i && activeSlotTarget.slotIndex === s;
+
+                    slotsHtml += `
+                        <div class="tile-slot ${tileObj ? 'filled' : ''} ${isTarget ? 'selected' : ''}" 
+                             onclick="selectSlot('seven', ${i}, ${s})">
+                            ${tileObj ? `<img src="${tileObj.img}" title="${tileObj.label}">` : '+'}
+                        </div>
+                    `;
+                }
+
+                const pairBoxHtml = `
+                    <div class="meld-box">
+                        <div class="meld-main-col">
+                            <span class="meld-title">Pair ${i + 1}</span>
+                            <div class="tile-slot-container">${slotsHtml}</div>
+                        </div>
+                    </div>
+                `;
+
+                if (i < 4) {
+                    topRowHtml += pairBoxHtml;
+                } else {
+                    bottomRowHtml += pairBoxHtml;
+                }
+            }
+
+            meldSection = `
+                <div class="seven-pairs-grid-top">${topRowHtml}</div>
+                <div class="seven-pairs-grid-bottom">${bottomRowHtml}</div>
+            `;
+        }
+
+        let pickerHtml = standardTiles.map(t => `
+            <div class="picker-item ${t.span2 ? 'span-2' : ''}" onclick="chooseTileForSlot('${t.id}')">
+                <img src="${t.img}" title="${t.label}">
+            </div>
+        `).join('');
+
+        content.innerHTML = `
+            <div class="page-title">4. Masukkan Kartu Pemenang</div>
+            
+            <div class="tab-toggle">
+                <button class="tab-btn ${state.handMode === 'standard' ? 'active' : ''}" onclick="switchHandMode('standard')">Standar (4 Set + Pair)</button>
+                <button class="tab-btn ${state.handMode === 'seven_pairs' ? 'active' : ''}" onclick="switchHandMode('seven_pairs')">Tujuh Pair</button>
+            </div>
+
+            ${meldSection}
+
+            <div class="toolbar-area">
+                <button class="btn-clear-all" onclick="clearAllHandSlots()">⚠︎ HAPUS SEMUA</button>
+            </div>
+
+            <div style="margin-top:2px;">
+                <label style="font-size:0.75rem; color:var(--color-green);">Pilih kartu di bawah untuk mengisi slot terpilih:</label>
+                <div class="picker-grid-9x4">${pickerHtml}</div>
+            </div>
+        `;
+
+        footer.innerHTML = `
+            <button class="btn btn-back" onclick="navigateTo(3)">← Kembali</button>
+            <button class="btn btn-next" onclick="navigateTo(5)">Selanjutnya →</button>
+        `;
+    }
+
+    function switchHandMode(mode) {
+        state.handMode = mode;
+        activeSlotTarget = { mode: mode, groupIndex: 0, slotIndex: 0 };
+        saveState();
+        render();
+    }
+
+    function toggleMeldOpen(index, isOpen) {
+        state.standardMelds[index].isOpen = isOpen;
+        saveState();
+        const content = document.getElementById('appContent');
+        const scrollTop = content ? content.scrollTop : 0;
+        const winScroll = window.scrollY;
+        render();
+        if (content) content.scrollTop = scrollTop;
+        window.scrollTo(0, winScroll);
+    }
+
+    function selectSlot(mode, groupIndex, slotIndex) {
+        activeSlotTarget = { mode, groupIndex, slotIndex };
+        render();
+    }
+
+    function chooseTileForSlot(tileId) {
+        if (!activeSlotTarget) {
+            activeSlotTarget = { mode: state.handMode, groupIndex: 0, slotIndex: 0 };
+        }
+
+        if (activeSlotTarget.mode === 'standard') {
+            state.standardMelds[activeSlotTarget.groupIndex].tiles[activeSlotTarget.slotIndex] = tileId;
+            if (activeSlotTarget.slotIndex < (activeSlotTarget.groupIndex === 4 ? 1 : 2)) {
+                activeSlotTarget.slotIndex++;
+            } else if (activeSlotTarget.groupIndex < 4) {
+                activeSlotTarget.groupIndex++;
+                activeSlotTarget.slotIndex = 0;
+            }
+        } else {
+            state.sevenPairs[activeSlotTarget.groupIndex][activeSlotTarget.slotIndex] = tileId;
+            if (activeSlotTarget.slotIndex < 1) {
+                activeSlotTarget.slotIndex++;
+            } else if (activeSlotTarget.groupIndex < 6) {
+                activeSlotTarget.groupIndex++;
+                activeSlotTarget.slotIndex = 0;
+            }
+        }
+
+        saveState();
+        render();
+    }
+
+    function renderPage5(content, footer) {
+        const specials = [
+            { id: 'none', label: 'Tidak Ada Kondisi Spesial', desc: 'Perhitungan standar' },
+            { id: 'pyongpi1', label: 'Pyong Pi Hitung 1', desc: 'Sisa joker, kartu apa pun yang diambil jadi kaki/pair (langsung dibuka setelah liu).<br>+5 Poin' },
+            { id: 'pyongpi4', label: 'Pyong Pi Hitung 4', desc: 'Dihitung sampai dengan putaran ke 4, di putaran 4 baru tambah poin, apabila dibatalkan sebelum putaran ke 4, tidak ditambahkan apapun.<br>+10 Poin' },
+            { id: 'pyongpi6', label: 'Pyong Pi Hitung 6', desc: 'Dihitung sampai dengan putaran ke 6, di putaran 6 baru tambah poin, apabila dibatalkan sebelum putaran ke 6, tidak ditambahkan apapun.<br>+30 Poin' },
+            { id: 'paochin', label: 'Pao Chin', desc: 'Di awal permainan setelah kartu dibagi, tinggal kurang dari 1 kartu sebelum Hu; harus diumumkan di awal permainan. Putaran pertama liu bisa Thi Hu. Apabila Thi Hu gagal, Pao Chin tetap berlaku.<br>+20 dengan KIM / +30 tanpa KIM' },
+            { id: 'sesampu', label: 'Se Sam Pu Tap (Thirteen Unconnected)', desc: 'Semua kartu tidak nyambung (tidak ada pair, minimal loncat 2 dalam suit yang sama). Tidak bisa dibuat (hanya dari awal bagi kartu), tidak boleh punya bunga, tidak boleh punya kim.<br>+40 Poin' },
+            { id: 'capsayauw', label: 'Cap Sa Yauw (Thirteen Orphans)', desc: '1 wan, 9 wan, 1 tong, 9 tong, 1 sok, 9 sok, tung, nan, si, pei, cung, fat, pat +1 antaranya.<br>+40 dengan KIM / +60 tanpa KIM' },
+            { id: 'thihu', label: 'Thi Hu (Blessing of Earth)', desc: 'Hu dari kartu buangan yang paling pertama (dari pemain pertama) diawali dengan pengumuman Pao Chin.<br>+40 dengan KIM / +60 tanpa KIM' },
+            { id: 'thianhu', label: 'Thian Hu (Blessing of Heaven)', desc: 'Setelah dibagi kartu, Bandar dengan 14 kartu langsung Hu.<br>+40 dengan KIM / +60 tanpa KIM' }
+        ];
+
+        let optionsHtml = specials.map(s => `
+            <div class="option-card ${state.specialHand === s.id ? 'selected' : ''}" onclick="selectSpecialHand('${s.id}')">
+                <input type="radio" name="special" ${state.specialHand === s.id ? 'checked' : ''}>
+                <div>
+                    <div class="label-text">${s.label}</div>
+                    <div style="font-size:0.7rem; color:#718096;">${s.desc}</div>
+                </div>
+            </div>
+        `).join('');
+
+        content.innerHTML = `
+            <div class="page-title">5. Kondisi Spesial</div>
+            <div class="page-subtitle">Pilih Kondisi Spesial jika ada (hanya bisa pilih satu):</div>
+            ${optionsHtml}
+        `;
+
+        footer.innerHTML = `
+            <button class="btn btn-back" onclick="navigateTo(4)">← Kembali</button>
+            <button class="btn btn-yellow" onclick="navigateTo(6)">✓ Hitung Nilai</button>
+        `;
+    }
+
+    function selectSpecialHand(id) {
+        state.specialHand = id;
+        saveState();
+        render();
+    }
+
+    function renderPage6(content, footer) {
+        const evaluation = calculateScore();
+        const minReq = Number(state.minTayToHu) || 5;
+
+        let breakdownItems = evaluation.items.map(item => `
+            <div class="breakdown-item ${item.pts === 0 ? 'batal' : ''}">
+                <span>${item.title}</span>
+                <span class="pts">${item.pts >= 0 ? '+' + item.pts : item.pts}</span>
+            </div>
+        `).join('');
+
+        let flowersVisualHtml = '';
+        if (state.selectedFlowers.length > 0) {
+            const sortedFlowers = flowerTiles.filter(f => state.selectedFlowers.includes(f.id));
+            let flowerCardsHtml = sortedFlowers.map(fl => {
+                const isRedFlower = fl.code.startsWith('red');
+                return `
+                    <div class="visual-flower-card">
+                        <img src="${fl.img}" alt="${fl.name}">
+                        <span style="${isRedFlower ? 'color: var(--color-red);' : ''}">${fl.name}</span>
+                    </div>
+                `;
+            }).join('');
+
+            flowersVisualHtml = `
+                <div class="visual-section-title">
+                    <span>🌸 Kartu Bunga (${sortedFlowers.length})</span>
+                </div>
+                <div class="visual-flowers-row">${flowerCardsHtml}</div>
+            `;
+        }
+
+        let handSetsVisualHtml = '';
+        if (state.handMode === 'standard') {
+            let groupsHtml = state.standardMelds.map((m, idx) => {
+                const isPair = idx === 4;
+                const statusText = isPair ? 'Kaki / Ciok' : (m.isOpen ? 'Terbuka' : 'Tertutup');
+                const badgeClass = isPair ? 'open' : (m.isOpen ? 'open' : 'closed');
+
+                let tilesImgHtml = m.tiles.map(tId => {
+                    if (!tId) return '';
+                    const tileObj = standardTiles.find(st => st.id === tId);
+                    const isKim = tId === 'kim';
+                    return tileObj ? `
+                        <img src="${tileObj.img}" class="visual-tile-img ${isKim ? 'kim-highlight' : ''}" title="${tileObj.label}">
+                    ` : '';
+                }).join('');
+
+                return `
+                    <div class="visual-set-group">
+                        <span class="set-status-badge ${badgeClass}">${statusText}</span>
+                        <div class="visual-tiles-row">${tilesImgHtml}</div>
+                    </div>
+                `;
+            }).join('');
+
+            handSetsVisualHtml = `
+                <div class="visual-section-title">
+                    <span>🀄 Kartu Tangan Hu</span>
+                </div>
+                <div class="visual-sets-container">${groupsHtml}</div>
+            `;
+        } else {
+            let pairsHtml = state.sevenPairs.map((p, idx) => {
+                let tilesImgHtml = p.map(tId => {
+                    if (!tId) return '';
+                    const tileObj = standardTiles.find(st => st.id === tId);
+                    const isKim = tId === 'kim';
+                    return tileObj ? `
+                        <img src="${tileObj.img}" class="visual-tile-img ${isKim ? 'kim-highlight' : ''}" title="${tileObj.label}">
+                    ` : '';
+                }).join('');
+
+                return `
+                    <div class="visual-set-group">
+                        <span class="set-status-badge closed">Pair ${idx + 1}</span>
+                        <div class="visual-tiles-row">${tilesImgHtml}</div>
+                    </div>
+                `;
+            }).join('');
+
+            handSetsVisualHtml = `
+                <div class="visual-section-title">
+                    <span>🀄 Kartu Tangan Hu</span>
+                </div>
+                <div class="visual-sets-container">${pairsHtml}</div>
+            `;
+        }
+
+        const seatWindLabel = windNamesMap[state.seatWind] || '東 (East) 1';
+        const prevalentWindLabel = windNamesMap[state.prevalentWind] || '東 (East) 1';
+
+        content.innerHTML = `
+            <div class="sticky-result-header">
+                <div class="page-title" style="margin-bottom: 6px;">Ini Hasil Perhitungan Budi</div>
+                <div id="finalScoreBox" class="score-box" onclick="triggerScoreEvaluationFeedback(${evaluation.totalScore}, true)" title="Ketuk untuk memutar ulang efek">
+                    <div style="font-size:0.75rem; font-weight:600; margin-bottom:2px;">TOTAL NILAI KEMENANGAN</div>
+                    <div id="finalScoreVal" class="score-val">0</div>
+                    <div class="score-tay">Tay</div>
+                    <div><span id="insufficientBadge" class="insufficient-badge">⛔ KURANG DARI ${minReq} TAY — TIDAK BOLEH HU</span></div>
+                    <div id="scoreReplayHint" class="score-replay-hint">✨ Ketuk kotak untuk efek ulang</div>
+                </div>
+            </div>
+
+            <div class="wind-info-banner">
+                <div>Angin Duduk: <span>${seatWindLabel}</span></div>
+                <div>Angin Meja: <span>${prevalentWindLabel}</span></div>
+            </div>
+
+            <div class="result-visual-box">
+                ${flowersVisualHtml}
+                ${handSetsVisualHtml}
+            </div>
+
+            <div class="breakdown-list">
+                ${breakdownItems}
+            </div>
+            <div style="width: 100%; text-align: center; font-style: italic; font-size: 0.75rem; line-height: 1.625; padding: 16px; color: #A59C91;">
+                <p>budijoe©2026</p>
+                <p>All rights reserved.</p>
+            </div>
+        `;
+
+        // Susunan footer halaman hasil: Tombol KEMBALI di paling kiri, SALIN di paling kanan
+        footer.innerHTML = `
+            <button class="btn btn-back" onclick="navigateTo(5)">← Kembali</button>
+            <button class="btn btn-danger" onclick="openResetModal()">↺ Ulang</button>
+            <button class="btn btn-next" onclick="copyToClipboard(${evaluation.totalScore})">⧉ Salin</button>
+        `;
+
+        // Picu evaluasi animasi & audio (celebration jika >= minTayToHu, gentle rejection jika < minTayToHu)
+        requestAnimationFrame(() => {
+            triggerScoreEvaluationFeedback(evaluation.totalScore, false);
+        });
+    }
+
+    function copyToClipboard(totalScore) {
+        const evaluation = calculateScore();
+        const minReq = Number(state.minTayToHu) || 5;
+        const statusSuffix = totalScore < minReq ? ` (TIDAK SAH HU — Kurang dari ${minReq} Tay)` : '';
+        let summary = `TOTAL NILAI = ${totalScore} Tay${statusSuffix}
+`;
+        evaluation.items.forEach(item => {
+            summary += `- ${item.title} = +${item.pts}
+`;
+        });
+
+        const fallbackCopy = (text) => {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('Rincian nilai disalin ke Clipboard!');
+            } catch (err) {
+                showToast('Hasil nilai dicatat!');
+            }
+            document.body.removeChild(ta);
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(summary).then(() => {
+                showToast('Rincian nilai disalin ke Clipboard!');
+            }).catch(() => {
+                fallbackCopy(summary);
+            });
+        } else {
+            fallbackCopy(summary);
+        }
+    }
+
+    function isSequenceSet(tiles) {
+        if (!tiles || tiles.length !== 3 || tiles.includes(null)) return false;
+        let nonKim = tiles.filter(t => t !== 'kim').map(id => standardTiles.find(st => st.id === id));
+        let kimCount = tiles.filter(t => t === 'kim').length;
+
+        if (kimCount === 3) return true;
+        if (kimCount === 2) {
+            return nonKim[0] && ['wan', 'sok', 'tong'].includes(nonKim[0].type);
+        }
+        if (kimCount === 1) {
+            if (!nonKim[0] || !nonKim[1]) return false;
+            if (nonKim[0].type !== nonKim[1].type) return false;
+            if (!['wan','sok','tong'].includes(nonKim[0].type)) return false;
+            let vals = [nonKim[0].val, nonKim[1].val].sort((a,b) => a - b);
+            let diff = vals[1] - vals[0];
+            return diff === 1 || diff === 2;
+        }
+
+        if (!nonKim[0] || !nonKim[1] || !nonKim[2]) return false;
+        if (nonKim[0].type !== nonKim[1].type || nonKim[1].type !== nonKim[2].type) return false;
+        if (!['wan','sok','tong'].includes(nonKim[0].type)) return false;
+        let vals = [nonKim[0].val, nonKim[1].val, nonKim[2].val].sort((a,b) => a - b);
+        return (vals[1] - vals[0] === 1) && (vals[2] - vals[1] === 1);
+    }
+
+    function isTripletSet(tiles) {
+        if (!tiles || tiles.length !== 3 || tiles.includes(null)) return false;
+        let nonKim = tiles.filter(t => t !== 'kim');
+        if (nonKim.length <= 1) return true;
+        if (nonKim.length === 2) return nonKim[0] === nonKim[1];
+        return nonKim[0] === nonKim[1] && nonKim[1] === nonKim[2];
+    }
+
+    function isPairSet(tiles) {
+        if (!tiles || tiles.length !== 2 || tiles.includes(null)) return false;
+        let nonKim = tiles.filter(t => t !== 'kim');
+        if (nonKim.length <= 1) return true;
+        return nonKim[0] === nonKim[1];
+    }
+
+    function getMeldTargetTile(tiles) {
+        if (!tiles || tiles.includes(null)) return null;
+        let nonKim = tiles.filter(t => t !== 'kim');
+        if (nonKim.length === 0) return 'kim';
+        const first = nonKim[0];
+        return nonKim.every(t => t === first) ? first : null;
+    }
+
+    function getTileType(tId) {
+        if (!tId || tId === 'kim') return 'kim';
+        const obj = standardTiles.find(st => st.id === tId);
+        return obj ? obj.type : 'unknown';
+    }
+
+    function getTileVal(tId) {
+        if (!tId || tId === 'kim') return 'kim';
+        const obj = standardTiles.find(st => st.id === tId);
+        return obj ? obj.val : null;
+    }
+
+    function isChiTueiPingHu(pairs) {
+        let suitRanks = { wan: [], sok: [], tong: [] };
+        let validPairCount = 0;
+
+        for (let i = 0; i < 7; i++) {
+            let p = pairs[i];
+            let nonKim = p.filter(t => t !== 'kim');
+            let tileId = nonKim.length > 0 ? nonKim[0] : null;
+
+            if (tileId) {
+                let type = getTileType(tileId);
+                let val = getTileVal(tileId);
+                if (['wan', 'sok', 'tong'].includes(type) && typeof val === 'number') {
+                    suitRanks[type].push(val);
+                    validPairCount++;
+                }
+            }
+        }
+
+        if (validPairCount < 6) return false;
+
+        let consecutiveGroupsFound = 0;
+        ['wan', 'sok', 'tong'].forEach(s => {
+            let ranks = suitRanks[s].sort((a,b) => a - b);
+            for (let i = 0; i <= ranks.length - 3; i++) {
+                if (ranks[i+1] === ranks[i] + 1 && ranks[i+2] === ranks[i] + 2) {
+                    consecutiveGroupsFound++;
+                    i += 2;
+                }
+            }
+        });
+
+        return consecutiveGroupsFound >= 2;
+    }
+
+    function calculateScore() {
+        let totalScore = 0;
+        let items = [];
+
+        if (state.winWay === 'cemo') { totalScore += 1; items.push({ title: 'Ce Mo (Self-Draw)', pts: 1 }); }
+        else if (state.winWay === 'mun') { totalScore += 1; items.push({ title: 'Mun (Concealed Hand)', pts: 1 }); }
+        else if (state.winWay === 'cemopu') { totalScore += 5; items.push({ title: 'Ce Mo Pu Ciu Jen', pts: 5 }); }
+        else if (state.winWay === 'chiongkong') { totalScore += 5; items.push({ title: 'Chiong Kong', pts: 5 }); }
+        else if (state.winWay === 'kongsong') { totalScore += 5; items.push({ title: 'Kong Song Hu', pts: 5 }); }
+        else if (state.winWay === 'kongkong') { totalScore += 30; items.push({ title: 'Kong Kong Hu', pts: 30 }); }
+
+        let allTiles = [];
+        if (state.handMode === 'standard') {
+            state.standardMelds.forEach(m => m.tiles.forEach(t => { if (t) allTiles.push(t); }));
+        } else {
+            state.sevenPairs.forEach(p => p.forEach(t => { if (t) allTiles.push(t); }));
+        }
+
+        let kimCount = allTiles.filter(t => t === 'kim').length;
+        let hasKim = kimCount > 0;
+
+        let flowerPts = 0;
+        let redCount = 0;
+        let blackCount = 0;
+        state.selectedFlowers.forEach(fId => {
+            const fl = flowerTiles.find(f => f.id === fId);
+            if (fl) {
+                if (fl.code.startsWith('red')) {
+                    redCount++;
+                    flowerPts += 1;
+                    const num = parseInt(fl.code.replace('red', ''));
+                    if (num === state.seatWind) flowerPts += 1;
+                } else if (fl.code.startsWith('black')) {
+                    blackCount++;
+                    const num = parseInt(fl.code.replace('black', ''));
+                    if (num === state.seatWind) flowerPts += 1;
+                }
+            }
+        });
+
+        const totalFlowers = state.selectedFlowers.length;
+        let hasHonors = allTiles.some(t => {
+            const type = getTileType(t);
+            return type === 'dragon' || type === 'wind';
+        });
+
+        if (totalFlowers === 0 && !hasHonors) {
+            flowerPts += 3;
+            items.push({ title: 'Tidak punya BUNGA dan SURAT', pts: 3 });
+        } else if (flowerPts > 0) {
+            items.push({ title: 'Kartu Bunga', pts: flowerPts });
+        }
+
+        if (blackCount === 4) { totalScore += 10; items.push({ title: 'Empat Bunga Hitam', pts: 10 }); }
+        if (redCount === 4) { totalScore += 20; items.push({ title: 'Empat Bunga Merah', pts: 20 }); }
+        if (totalFlowers === 7) { totalScore += 30; items.push({ title: 'Tujuh Bunga', pts: 30 }); }
+        if (totalFlowers === 8) { totalScore += 60; items.push({ title: 'Delapan Bunga', pts: 60 }); }
+        totalScore += flowerPts;
+
+        let hasKimThi = false;
+        if (state.handMode === 'standard') {
+            for (let i = 0; i < 4; i++) {
+                const meld = state.standardMelds[i];
+                if (meld.tiles[0] === 'kim' && meld.tiles[1] === 'kim' && meld.tiles[2] === 'kim') {
+                    hasKimThi = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasKimThi) {
+            totalScore += 30;
+            items.push({ title: 'Kim Thi (3 KIM Triplet Set)', pts: 30 });
+        } else if (kimCount === 4) {
+            totalScore += 40;
+            items.push({ title: 'Empat KIM / Joker', pts: 40 });
+        } else if (kimCount > 0) {
+            totalScore += kimCount;
+            items.push({ title: `KIM / Joker (${kimCount} kartu)`, pts: kimCount });
+        } else {
+            totalScore += 3;
+            items.push({ title: 'Tidak ada KIM (Joker)', pts: 3 });
+        }
+
+        // Pemeriksaan Kaki / Ciok (Pair): Kim Ciok atau Ji Pa Ciok
+        if (state.handMode === 'standard') {
+            const pairTiles = state.standardMelds[4].tiles;
+            if (pairTiles[0] === 'kim' && pairTiles[1] === 'kim') {
+                totalScore += 20;
+                items.push({ title: 'Kim Ciok (Pair KIM)', pts: 20 });
+            } else if (isPairSet(pairTiles)) {
+                const pairTarget = getMeldTargetTile(pairTiles);
+                if (pairTarget && pairTarget !== 'kim') {
+                    const pairType = getTileType(pairTarget);
+                    const pairVal = getTileVal(pairTarget);
+                    if (['wan', 'sok', 'tong'].includes(pairType) && (pairVal === 2 || pairVal === 8)) {
+                        totalScore += 1;
+                        items.push({ title: 'Ji Pa Ciok (Pair 2 / 8)', pts: 1 });
+                    }
+                }
+            }
+        }
+
+        let suitsPresent = new Set();
+        let containsHonors = false;
+        let allSetsAreTriplets = true;
+        let allSetsAreChows = true;
+        let allTerminalsOrHonorsTriplets = true;
+        let allTerminalsOnlyTriplets = true;
+        let allHonorsTriplets = true;
+
+        if (state.handMode === 'standard') {
+            for (let i = 0; i < 5; i++) {
+                const meld = state.standardMelds[i];
+                const isPair = i === 4;
+                const isSeq = !isPair && isSequenceSet(meld.tiles);
+                const isTris = !isPair && isTripletSet(meld.tiles);
+
+                if (!isPair) {
+                    if (!isSeq) allSetsAreChows = false;
+                    if (!isTris) allSetsAreTriplets = false;
+                }
+
+                meld.tiles.forEach(tId => {
+                    if (tId && tId !== 'kim') {
+                        const type = getTileType(tId);
+                        const val = getTileVal(tId);
+
+                        if (['wan', 'sok', 'tong'].includes(type)) {
+                            suitsPresent.add(type);
+                            if (val !== 1 && val !== 9) {
+                                allTerminalsOrHonorsTriplets = false;
+                                allTerminalsOnlyTriplets = false;
+                            }
+                            allHonorsTriplets = false;
+                        } else if (type === 'dragon' || type === 'wind') {
+                            containsHonors = true;
+                            allTerminalsOnlyTriplets = false;
+                        }
+                    }
+                });
+            }
+        }
+
+        if (state.handMode === 'standard') {
+            if (allHonorsTriplets && allSetsAreTriplets) {
+                let pts = hasKim ? 40 : 60;
+                totalScore += pts;
+                items.push({ title: `Ie Set Surat (All Honors) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (suitsPresent.size === 1 && !containsHonors && allSetsAreTriplets) {
+                let pts = hasKim ? 40 : 50;
+                totalScore += pts;
+                items.push({ title: `Ie Set Tuei Tuei (Full Flush All Pungs) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (suitsPresent.size === 1 && !containsHonors && allSetsAreChows) {
+                let pts = hasKim ? 30 : 40;
+                totalScore += pts;
+                items.push({ title: `Ie Set Ping Hu (Full Flush All Chows) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (suitsPresent.size === 1 && !containsHonors) {
+                let pts = hasKim ? 20 : 30;
+                totalScore += pts;
+                items.push({ title: `Ie Set (Full Flush) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (allTerminalsOnlyTriplets && allSetsAreTriplets) {
+                let pts = hasKim ? 30 : 40;
+                totalScore += pts;
+                items.push({ title: `Yau Ciu (All Terminals) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (allTerminalsOrHonorsTriplets && containsHonors && allSetsAreTriplets) {
+                let pts = hasKim ? 10 : 20;
+                totalScore += pts;
+                items.push({ title: `Cau It Yau Ciu (Mixed Terminals) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (suitsPresent.size === 1 && containsHonors) {
+                let pts = hasKim ? 5 : 10;
+                totalScore += pts;
+                items.push({ title: `Cau It (Mixed Flush) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+
+            let concealedPungCount = 0;
+            for (let i = 0; i < 4; i++) {
+                const meld = state.standardMelds[i];
+                if (!meld.isOpen && isTripletSet(meld.tiles)) {
+                    concealedPungCount++;
+                }
+            }
+
+            if (concealedPungCount === 4) {
+                let pts = hasKim ? 40 : 50;
+                totalScore += pts;
+                items.push({ title: `Si Am Kang (Four Concealed Pungs) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            } else if (concealedPungCount === 3) {
+                totalScore += 5;
+                items.push({ title: 'Sam An Kang (Three Concealed Pungs)', pts: 5 });
+            }
+
+            let isTanTiau = state.standardMelds.slice(0, 4).every(m => m.isOpen);
+            if (isTanTiau) {
+                totalScore += 5;
+                items.push({ title: 'Tan Tiau (Melded Hand)', pts: 5 });
+            }
+
+            if (allSetsAreTriplets && !allHonorsTriplets && suitsPresent.size > 1) {
+                let pts = hasKim ? 5 : 10;
+                totalScore += pts;
+                items.push({ title: `Tuei Tuei (All Pungs) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+
+            if (allSetsAreChows && suitsPresent.size > 1) {
+                let pingHuBatal = false;
+                const pairTiles = state.standardMelds[4].tiles;
+                pairTiles.forEach(tId => {
+                    if (tId && tId !== 'kim') {
+                        const type = getTileType(tId);
+                        const val = getTileVal(tId);
+                        if (type === 'dragon') pingHuBatal = true;
+                        if (type === 'wind' && (val === state.seatWind || val === state.prevalentWind)) pingHuBatal = true;
+                    }
+                });
+
+                if (pingHuBatal) {
+                    items.push({ title: 'Ping Hu (All Chows) BATAL', pts: 0 });
+                } else {
+                    totalScore += 3;
+                    items.push({ title: 'Ping Hu (All Chows)', pts: 3 });
+                }
+            }
+
+            const dragonIds = ['cung', 'fat', 'pai'];
+            const windIds = ['tung', 'nan', 'si', 'pei'];
+
+            let tripletTargets = new Set();
+            for (let i = 0; i < 4; i++) {
+                const meld = state.standardMelds[i];
+                if (isTripletSet(meld.tiles)) {
+                    const target = getMeldTargetTile(meld.tiles);
+                    if (target && target !== 'kim') {
+                        tripletTargets.add(target);
+                    }
+                }
+            }
+
+            let pairTarget = null;
+            const pairTiles = state.standardMelds[4].tiles;
+            if (isPairSet(pairTiles)) {
+                const target = getMeldTargetTile(pairTiles);
+                if (target && target !== 'kim') {
+                    pairTarget = target;
+                }
+            }
+
+            let dragonTripletCount = dragonIds.filter(d => tripletTargets.has(d)).length;
+            let dragonHasPair = pairTarget && dragonIds.includes(pairTarget) && !tripletTargets.has(pairTarget);
+
+            if (dragonTripletCount === 3) {
+                let pts = hasKim ? 30 : 40;
+                totalScore += pts;
+                items.push({ title: `Ta San Yen (Big Three Dragons) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            } else if (dragonTripletCount === 2 && dragonHasPair) {
+                let pts = hasKim ? 10 : 20;
+                totalScore += pts;
+                items.push({ title: `Siau San Yen (Small Three Dragons) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+
+            let windTripletCount = windIds.filter(w => tripletTargets.has(w)).length;
+            let windHasPair = pairTarget && windIds.includes(pairTarget) && !tripletTargets.has(pairTarget);
+
+            if (windTripletCount === 4) {
+                let pts = hasKim ? 50 : 60;
+                totalScore += pts;
+                items.push({ title: `Ta Se Si (Big Four Winds) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            } else if (windTripletCount === 3 && windHasPair) {
+                let pts = hasKim ? 30 : 40;
+                totalScore += pts;
+                items.push({ title: `Siau Se Si (Small Four Winds) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+        }
+
+        if (state.handMode === 'seven_pairs') {
+            let pairSuits = new Set();
+            let pairHasHonors = false;
+            let pairOnly19 = true;
+            let pairOnly19OrHonors = true;
+            let pairTypesList = [];
+            let hasRepeatedPairs = false;
+
+            for (let i = 0; i < 7; i++) {
+                const p = state.sevenPairs[i];
+                const t0 = p[0];
+                if (t0 && t0 !== 'kim') {
+                    const type = getTileType(t0);
+                    const val = getTileVal(t0);
+
+                    if (['wan', 'sok', 'tong'].includes(type)) {
+                        pairSuits.add(type);
+                        if (val !== 1 && val !== 9) {
+                            pairOnly19 = false;
+                            pairOnly19OrHonors = false;
+                        }
+                    } else if (type === 'dragon' || type === 'wind') {
+                        pairHasHonors = true;
+                        pairOnly19 = false;
+                    }
+
+                    if (pairTypesList.includes(t0)) {
+                        hasRepeatedPairs = true;
+                    } else {
+                        pairTypesList.push(t0);
+                    }
+                }
+            }
+
+            if (pairSuits.size === 1 && !pairHasHonors && !hasRepeatedPairs) {
+                let pts = hasKim ? 40 : 50;
+                totalScore += pts;
+                items.push({ title: `Chi Tuei It Set (Seven Pairs Full Flush) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (pairOnly19 && !pairHasHonors) {
+                let pts = hasKim ? 40 : 50;
+                totalScore += pts;
+                items.push({ title: `Chi Tuei Yau Ciu (Seven Pairs All Terminals) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (pairOnly19OrHonors && pairHasHonors && !hasRepeatedPairs) {
+                let pts = hasKim ? 30 : 40;
+                totalScore += pts;
+                items.push({ title: `Chi Tuei Cau It Yau Ciu (Seven Pairs Mixed Terminals) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (isChiTueiPingHu(state.sevenPairs) && !hasRepeatedPairs) {
+                let pts = hasKim ? 20 : 30;
+                totalScore += pts;
+                items.push({ title: `Chi Tuei Ping Hu (Seven Pairs All Chows) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else if (pairSuits.size === 1 && pairHasHonors && !hasRepeatedPairs) {
+                let pts = hasKim ? 20 : 30;
+                totalScore += pts;
+                items.push({ title: `Chi Tuei Cau It (Seven Pairs Mixed Flush) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+            else {
+                let pts = hasKim ? 10 : 20;
+                totalScore += pts;
+                items.push({ title: `Chi Tuei (Seven Pairs) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+            }
+        }
+
+        ['cung', 'fat', 'pai'].forEach(d => {
+            let cnt = allTiles.filter(t => t === d).length;
+            let hasMeldTriplet = state.handMode === 'standard' && state.standardMelds.slice(0, 4).some(m => isTripletSet(m.tiles) && getMeldTargetTile(m.tiles) === d);
+            if (cnt >= 3 || hasMeldTriplet) {
+                let pts = d === 'cung' ? 2 : 1;
+                let name = d === 'cung' ? 'Naga Merah (Cung)' : d === 'fat' ? 'Naga Hijau (Fat)' : 'Naga Putih (Pai)';
+                totalScore += pts;
+                items.push({ title: `Pung ${name}`, pts: pts });
+            }
+        });
+
+        const windMap = { 1: 'tung', 2: 'nan', 3: 'si', 4: 'pei' };
+        let seatWindTile = windMap[state.seatWind];
+        let prevalentWindTile = windMap[state.prevalentWind];
+
+        let seatCount = allTiles.filter(t => t === seatWindTile).length;
+        let hasSeatTriplet = state.handMode === 'standard' && state.standardMelds.slice(0, 4).some(m => isTripletSet(m.tiles) && getMeldTargetTile(m.tiles) === seatWindTile);
+        if (seatCount >= 3 || hasSeatTriplet) {
+            totalScore += 1;
+            items.push({ title: 'Pung Angin Duduk (Seat Wind)', pts: 1 });
+        }
+
+        let prevalentCount = allTiles.filter(t => t === prevalentWindTile).length;
+        let hasPrevalentTriplet = state.handMode === 'standard' && state.standardMelds.slice(0, 4).some(m => isTripletSet(m.tiles) && getMeldTargetTile(m.tiles) === prevalentWindTile);
+        if ((prevalentCount >= 3 || hasPrevalentTriplet) && seatWindTile !== prevalentWindTile) {
+            totalScore += 1;
+            items.push({ title: 'Pung Angin Meja (Prevalent Wind)', pts: 1 });
+        }
+
+        const orphanTileIds = ['1_wan', '9_wan', '1_sok', '9_sok', '1_tong', '9_tong', 'tung', 'nan', 'si', 'pei', 'cung', 'fat', 'pai'];
+        let isAutoCapSaYauw = false;
+        if (allTiles.length === 14) {
+            let missingOrphans = 0;
+            orphanTileIds.forEach(id => {
+                if (!allTiles.includes(id)) missingOrphans++;
+            });
+            if (missingOrphans <= kimCount) {
+                isAutoCapSaYauw = true;
+            }
+        }
+
+        if (state.specialHand === 'capsayauw' || isAutoCapSaYauw) {
+            let pts = hasKim ? 40 : 60;
+            totalScore += pts;
+            items.push({ title: `Cap Sa Yauw (Thirteen Orphans) ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+        } else if (state.specialHand === 'pyongpi1') {
+            totalScore += 5;
+            items.push({ title: 'Pyong Pi Hitung 1', pts: 5 });
+        } else if (state.specialHand === 'pyongpi4') {
+            totalScore += 10;
+            items.push({ title: 'Pyong Pi Hitung 4', pts: 10 });
+        } else if (state.specialHand === 'pyongpi6') {
+            totalScore += 30;
+            items.push({ title: 'Pyong Pi Hitung 6', pts: 30 });
+        } else if (state.specialHand === 'paochin') {
+            let pts = hasKim ? 20 : 30;
+            totalScore += pts;
+            items.push({ title: `Pao Chin ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+        } else if (state.specialHand === 'sesampu') {
+            totalScore += 40;
+            items.push({ title: 'Se Sam Pu Tap', pts: 40 });
+        } else if (state.specialHand === 'thihu') {
+            let pts = hasKim ? 40 : 60;
+            totalScore += pts;
+            items.push({ title: `Thi Hu ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+        } else if (state.specialHand === 'thianhu') {
+            let pts = hasKim ? 40 : 60;
+            totalScore += pts;
+            items.push({ title: `Thian Hu ${hasKim ? 'dengan KIM' : 'tanpa KIM'}`, pts: pts });
+        }
+
+        return { totalScore, items };
+    }
+
+    loadState();
+    render();
+</script>
+<script>
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.register (
+          '/iniberapa/sw.js',
+          {scope: '/iniberapa/'}
+        )
+      }
+  </script>
+</body>
+</html>
